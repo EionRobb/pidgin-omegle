@@ -111,16 +111,15 @@ static void om_convo_closed(PurpleConnection *pc, const char *who)
 	g_free(postdata);
 }
 
-static gboolean om_fetch_events(gpointer data)
+static void om_fetch_events(OmegleAccount *oma, const gchar *who)
 {
-	OmegleAccount *oma;
 	gchar *postdata;
 	
 	oma = pc->proto_data;
-	postdata = g_strdup_printf("id=%s", purple_url_encode(data));
+	postdata = g_strdup_printf("id=%s", purple_url_encode(who));
 	
 	om_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
-				postdata, om_got_events, data, FALSE);
+				postdata, om_got_events, who, FALSE);
 				
 	g_free(postdata);
 	return TRUE;	
@@ -156,7 +155,7 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 		return;
 	}
 	
-	om_fetch_events(who);
+	om_fetch_events(oma, who);
 }
 
 static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
@@ -171,7 +170,7 @@ static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 		id[strlen(id)-1] = '\0';
 	
 	//Start the event loop
-	om_fetch_events(g_strdup(id));
+	om_fetch_events(oma, g_strdup(id));
 	
 	g_free(id);
 }
