@@ -19,6 +19,7 @@
  */
 
 #include "libomegle.h"
+#include "om_connection.h"
 
 /******************************************************************************/
 /* PRPL functions */
@@ -98,11 +99,13 @@ static void om_close(PurpleConnection *pc)
 
 static void om_convo_closed(PurpleConnection *gc, const char *who)
 {
+	OmegleAccount *oma;
 	gchar *postdata;
 	
+	oma = pc->proto_data;
 	postdata = g_strdup_printf("id=%s", purple_url_encode(who));
 	
-	fb_post_or_get(oma, OM_METHOD_POST, NULL, "/disconnect",
+	om_post_or_get(oma, OM_METHOD_POST, NULL, "/disconnect",
 				postdata, NULL, NULL, FALSE);
 				
 	g_free(postdata);
@@ -115,22 +118,22 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 	gchar *who = userdata;
 	gchar *message;
 	
-	if (g_str_equal(response, "[[\"waiting\"]]")
+	if (g_str_equal(response, "[[\"waiting\"]]"))
 	{
 		serv_got_im(oma->pc, who, "Looking for someone you can chat with. Hang on.", PURPLE_MESSAGE_SYSTEM, time(NULL));
-	} else if (g_str_equal(response, "[[\"connected\"]]") {
+	} else if (g_str_equal(response, "[[\"connected\"]]")) {
 		serv_got_im(oma->pc, who, "You're now chatting with a random stranger. Say hi!", PURPLE_MESSAGE_SYSTEM, time(NULL));
-	} else if (g_str_has_prefix(response, "[[\"gotMessage\"") {
+	} else if (g_str_has_prefix(response, "[[\"gotMessage\"")) {
 		//[["gotMessage","message goes here"]]
 		message = g_strdup(&response[16]);
 		message[strlen(message)-4] = '\0';
 		serv_got_im(oma->pc, who, message, PURPLE_MESSAGE_RECV, time(NULL));		
 		g_free(message);
-	} else if (g_str_equal(response, "[[\"typing\"]]") {
+	} else if (g_str_equal(response, "[[\"typing\"]]")) {
 		serv_got_typing(oma->pc, who, 10, PURPLE_TYPING);
-	} else if (g_str_equal(response, "[[\"stoppedTyping\"]]") {
+	} else if (g_str_equal(response, "[[\"stoppedTyping\"]]")) {
 		serv_got_typing(oma->pc, who, 10, PURPLE_TYPED);
-	} else if (g_str_equal(response, "[[\"strangerDisconnect\"]]") {
+	} else if (g_str_equal(response, "[[\"strangerDisconnect\"]]")) {
 		serv_got_im(oma->pc, who, "Your conversational partner has disconnected", PURPLE_MESSAGE_SYSTEM, time(NULL));
 		g_free(who);
 		return;
