@@ -97,7 +97,7 @@ static void om_close(PurpleConnection *pc)
 	g_free(oma);
 }
 
-static void om_convo_closed(PurpleConnection *gc, const char *who)
+static void om_convo_closed(PurpleConnection *pc, const char *who)
 {
 	OmegleAccount *oma;
 	gchar *postdata;
@@ -111,6 +111,18 @@ static void om_convo_closed(PurpleConnection *gc, const char *who)
 	g_free(postdata);
 }
 
+static gboolean om_fetch_events(gpointer data)
+{
+	gchar *postdata;
+	
+	postdata = g_strdup_printf("id=%s", purple_url_encode(data));
+	
+	fb_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
+				postdata, om_got_events, data, FALSE);
+				
+	g_free(postdata);
+	return TRUE;	
+}
 
 static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 		gpointer userdata)
@@ -145,19 +157,6 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 	om_fetch_events(who);
 }
 
-static gboolean om_fetch_events(gpointer data)
-{
-	gchar *postdata;
-	
-	postdata = g_strdup_printf("id=%s", purple_url_encode(data));
-	
-	fb_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
-				postdata, om_got_events, data, FALSE);
-				
-	g_free(postdata);
-	return TRUE;	
-}
-
 static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 		gpointer userdata)
 {
@@ -189,7 +188,7 @@ static void om_start_im(PurpleBlistNode *node, gpointer data)
 	pc = purple_account_get_connection(buddy->account);
 	oma = pc->proto_data;
 	
-	fb_post_or_get(oma, OM_METHOD_POST, NULL, "/start",
+	om_post_or_get(oma, OM_METHOD_POST, NULL, "/start",
 				NULL, om_start_im_cb, NULL, FALSE);
 	
 	g_free(postdata);
@@ -373,20 +372,20 @@ static PurplePluginInfo info = {
 	0, 						/* flags */
 	NULL, 						/* dependencies */
 	PURPLE_PRIORITY_DEFAULT, 			/* priority */
-	FACEBOOK_PLUGIN_ID,				/* id */
-	"Facebook", 					/* name */
-	FACEBOOK_PLUGIN_VERSION, 			/* version */
-	N_("Facebook Protocol Plugin"), 		/* summary */
-	N_("Facebook Protocol Plugin"), 		/* description */
+	OMEGLE_PLUGIN_ID,				/* id */
+	"Omegle", 					/* name */
+	OMEGLE_PLUGIN_VERSION, 			/* version */
+	N_("Omegle Protocol Plugin"), 		/* summary */
+	N_("Omegle Protocol Plugin"), 		/* description */
 	"Eion Robb <eionrobb@gmail.com>", 		/* author */
-	"http://pidgin-facebookchat.googlecode.com/",	/* homepage */
+	"http://pidgin-omegle.googlecode.com/",	/* homepage */
 	plugin_load, 					/* load */
 	plugin_unload, 					/* unload */
 	NULL, 						/* destroy */
 	NULL, 						/* ui_info */
 	&prpl_info, 					/* extra_info */
 	NULL, 						/* prefs_info */
-	fb_actions, 					/* actions */
+	NULL, 					/* actions */
 
 							/* padding */
 	NULL,
