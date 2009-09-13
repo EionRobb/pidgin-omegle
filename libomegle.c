@@ -21,6 +21,10 @@
 #include "libomegle.h"
 #include "om_connection.h"
 
+
+static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
+		gpointer userdata);
+
 /******************************************************************************/
 /* PRPL functions */
 /******************************************************************************/
@@ -115,14 +119,12 @@ static void om_fetch_events(OmegleAccount *oma, const gchar *who)
 {
 	gchar *postdata;
 	
-	oma = pc->proto_data;
 	postdata = g_strdup_printf("id=%s", purple_url_encode(who));
 	
 	om_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
 				postdata, om_got_events, who, FALSE);
 				
 	g_free(postdata);
-	return TRUE;	
 }
 
 static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
@@ -162,6 +164,7 @@ static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 		gpointer userdata)
 {
 	gchar *id;
+	
 	//This should come back with an ID that we pass around
 	id = g_strdup(response);
 	if (id[0] == '"')
@@ -191,8 +194,6 @@ static void om_start_im(PurpleBlistNode *node, gpointer data)
 	
 	om_post_or_get(oma, OM_METHOD_POST, NULL, "/start",
 				NULL, om_start_im_cb, NULL, FALSE);
-	
-	g_free(postdata);
 }
 
 static GList *om_node_menu(PurpleBlistNode *node)
