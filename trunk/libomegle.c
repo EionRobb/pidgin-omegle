@@ -113,11 +113,13 @@ static void om_convo_closed(PurpleConnection *pc, const char *who)
 
 static gboolean om_fetch_events(gpointer data)
 {
+	OmegleAccount *oma;
 	gchar *postdata;
 	
+	oma = pc->proto_data;
 	postdata = g_strdup_printf("id=%s", purple_url_encode(data));
 	
-	fb_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
+	om_post_or_get(oma, OM_METHOD_POST, NULL, "/events",
 				postdata, om_got_events, data, FALSE);
 				
 	g_free(postdata);
@@ -166,7 +168,7 @@ static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 	if (id[0] == '"')
 		id++;
 	if (id[strlen(id)-1] == '"')
-		id[strlen(id)-1] = '\0'
+		id[strlen(id)-1] = '\0';
 	
 	//Start the event loop
 	om_fetch_events(g_strdup(id));
@@ -177,7 +179,7 @@ static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 static void om_start_im(PurpleBlistNode *node, gpointer data)
 {
 	PurpleBuddy *buddy;
-	OmegleAccount *oma
+	OmegleAccount *oma;
 	PurpleConnection *pc;
 	
 	if(!PURPLE_BLIST_NODE_IS_BUDDY(node))
@@ -228,7 +230,7 @@ static unsigned int om_send_typing(PurpleConnection *pc, const gchar *name,
 	{
 		url = "/stoppedtyping";
 	} else {
-		return;
+		return 0;
 	}
 	
 	postdata = g_strdup_printf("id=%s", purple_url_encode(name));
@@ -245,9 +247,10 @@ static int om_send_im(PurpleConnection *pc, const gchar *who, const gchar *messa
 	OmegleAccount *oma;
 	gchar *encoded_name;
 	gchar *encoded_message;
+	gchar *postdata;
 	
-	encoded_name = purple_url_encode(who)
-	encoded_message = purple_url_encode(message)
+	encoded_name = purple_url_encode(who);
+	encoded_message = purple_url_encode(message);
 	
 	postdata = g_strdup_printf("id=%s&msg=%s", encoded_name, encoded_message);
 	
@@ -293,7 +296,7 @@ static PurplePluginProtocolInfo prpl_info = {
 
 	NULL,                   /* user_splits */
 	NULL,                   /* protocol_options */
-	NO_BUDDY_ICONS          /* icon_spec */
+	NO_BUDDY_ICONS,         /* icon_spec */
 	om_list_icon,           /* list_icon */
 	NULL,                   /* list_emblems */
 	NULL,                   /* status_text */
