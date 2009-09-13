@@ -22,7 +22,6 @@
 
 static void om_attempt_connection(OmegleConnection *);
 
-#ifdef HAVE_ZLIB
 #include <zlib.h>
 
 static gchar *om_gunzip(const guchar *gzip_data, ssize_t *len_ptr)
@@ -100,7 +99,6 @@ static gchar *om_gunzip(const guchar *gzip_data, ssize_t *len_ptr)
 
 	return output_data;
 }
-#endif
 
 void om_connection_destroy(OmegleConnection *omconn)
 {
@@ -185,7 +183,6 @@ static void om_connection_process_data(OmegleConnection *omconn)
 		omconn->rx_buf[omconn->rx_len - len] = '\0';
 		om_update_cookies(omconn->oma, omconn->rx_buf);
 
-#ifdef HAVE_ZLIB
 		if (strstr(omconn->rx_buf, "Content-Encoding: gzip"))
 		{
 			/* we've received compressed gzip data, decompress */
@@ -194,7 +191,6 @@ static void om_connection_process_data(OmegleConnection *omconn)
 			g_free(tmp);
 			tmp = gunzipped;
 		}
-#endif
 	}
 
 	g_free(omconn->rx_buf);
@@ -507,11 +503,9 @@ void om_post_or_get(OmegleAccount *oma, OmegleMethod method,
 		g_string_append_printf(request,
 				"Content-length: %zu\r\n", strlen(postdata));
 	}
-	g_string_append_printf(request, "Accept: */*\r\n");
+	g_string_append_printf(request, "Accept: application/json, text/html, */*\r\n");
 	g_string_append_printf(request, "Cookie: %s\r\n", cookies);
-#ifdef HAVE_ZLIB
 	g_string_append_printf(request, "Accept-Encoding: gzip\r\n");
-#endif
 	if (is_proxy == TRUE)
 	{
 		if (purple_proxy_info_get_username(proxy_info) &&
