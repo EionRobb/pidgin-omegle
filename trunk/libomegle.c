@@ -115,7 +115,7 @@ static void om_convo_closed(PurpleConnection *pc, const char *who)
 	g_free(postdata);
 }
 
-static void om_fetch_events(OmegleAccount *oma, const gchar *who)
+static void om_fetch_events(OmegleAccount *oma, gchar *who)
 {
 	gchar *postdata;
 	
@@ -249,8 +249,9 @@ static int om_send_im(PurpleConnection *pc, const gchar *who, const gchar *messa
 	gchar *encoded_message;
 	gchar *postdata;
 	
-	encoded_name = purple_url_encode(who);
-	encoded_message = purple_url_encode(message);
+	oma = pc->proto_data;
+	encoded_name = g_strdup(purple_url_encode(who));
+	encoded_message = g_strdup(purple_url_encode(message));
 	
 	postdata = g_strdup_printf("id=%s&msg=%s", encoded_name, encoded_message);
 	
