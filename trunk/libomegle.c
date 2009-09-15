@@ -21,6 +21,7 @@
 #include "libomegle.h"
 #include "om_connection.h"
 
+#include <json-glib/json-glib.h>
 
 static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 		gpointer userdata);
@@ -130,34 +131,55 @@ static void om_fetch_events(OmegleAccount *oma, gchar *who)
 static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 		gpointer userdata)
 {
+	//[["waiting"], ["connected"]]
 	gchar *who = userdata;
-	gchar *message;
+	const gchar *message;
+	const gchar *event_type;
+	JsonParser *parser;
+	JsonNode *rootnode, currentnode;
+	JsonArray *array, current;
+	guint i;
 	
-	if (g_str_equal(response, "[[\"waiting\"]]"))
+	parser = json_parser_new();
+	json_parser_load_from_data(parser, response, len, NULL);
+	rootnode = json_parser_get_root(parser);
+	if (!rootnode)
 	{
-		serv_got_im(oma->pc, who, "Looking for someone you can chat with. Hang on.", PURPLE_MESSAGE_SYSTEM, time(NULL));
-	} else if (g_str_equal(response, "[[\"connected\"]]")) {
-		serv_got_im(oma->pc, who, "You're now chatting with a random stranger. Say hi!", PURPLE_MESSAGE_SYSTEM, time(NULL));
-	} else if (g_str_has_prefix(response, "[[\"gotMessage\"")) {
-		//[["gotMessage","message goes here"]]
-		message = g_strdup(&response[16]);
-		message[strlen(message)-4] = '\0';
-		serv_got_im(oma->pc, who, message, PURPLE_MESSAGE_RECV, time(NULL));		
-		g_free(message);
-	} else if (g_str_equal(response, "[[\"typing\"]]")) {
-		serv_got_typing(oma->pc, who, 10, PURPLE_TYPING);
-	} else if (g_str_equal(response, "[[\"stoppedTyping\"]]")) {
-		serv_got_typing(oma->pc, who, 10, PURPLE_TYPED);
-	} else if (g_str_equal(response, "[[\"strangerDisconnect\"]]")) {
-		serv_got_im(oma->pc, who, "Your conversational partner has disconnected", PURPLE_MESSAGE_SYSTEM, time(NULL));
-		g_free(who);
+		g_object_unref(parser);
 		return;
-	} else {
-		g_free(who);
-		return;
+	}
+	array = json_node_get_array(rootnode);
+	
+	for(i=0; i<json_array_get_length(array); i++)
+	{
+		currentnode = json_array_get_element(array, i);
+		current = json_node_get_array(currentnode);
+		event_type = json_node_get_string(json_array_get_element(current, 0));
+		if (!event_type)
+		{
+			continue;
+		} else if (g_str_equal(event_type, "waiting")) {
+			serv_got_im(oma->pc, who, "Looking for someone you can chat with. Hang on.", PURPLE_MESSAGE_SYSTEM, time(NULL));
+		} else if (g_str_equal(event_type, "connected")) {
+			serv_got_im(oma->pc, who, "You're now chatting with a random stranger. Say hi!", PURPLE_MESSAGE_SYSTEM, time(NULL));
+		} else if (g_str_equal(event_type, "gotMessage")) {
+			//[["gotMessage","message goes here"]]
+			message = json_node_get_string(json_array_get_element(current, 1));
+			if (message)
+				serv_got_im(oma->pc, who, message, PURPLE_MESSAGE_RECV, time(NULL));
+		} else if (g_str_equal(event_type, "typing")) {
+			serv_got_typing(oma->pc, who, 10, PURPLE_TYPING);
+		} else if (g_str_equal(event_type, "stoppedTyping")) {
+			serv_got_typing(oma->pc, who, 10, PURPLE_TYPED);
+		} else if (g_str_equal(event_type, "strangerDisconnect")) {
+			serv_got_im(oma->pc, who, "Your conversational partner has disconnected", PURPLE_MESSAGE_SYSTEM, time(NULL));
+		}
 	}
 	
 	om_fetch_events(oma, who);
+	
+	g_free(who);
+	g_object_unref(parser);
 }
 
 static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
