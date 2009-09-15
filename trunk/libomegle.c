@@ -136,8 +136,8 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 	const gchar *message;
 	const gchar *event_type;
 	JsonParser *parser;
-	JsonNode *rootnode, currentnode;
-	JsonArray *array, current;
+	JsonNode *rootnode, *currentnode;
+	JsonArray *array, *current;
 	guint i;
 	
 	parser = json_parser_new();
