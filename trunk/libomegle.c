@@ -142,7 +142,7 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 
 	purple_debug_info("omegle", "got events: %s\n", response?response:"(null)");
 	
-	if (!response)
+	if (!response || g_str_equal(response, "null"))
 	{
 		g_free(who);
 		return;
