@@ -139,6 +139,14 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 	JsonNode *rootnode, *currentnode;
 	JsonArray *array, *current;
 	guint i;
+
+	purple_debug_info("omegle", "got events: %s\n", response?response:"(null)");
+	
+	if (!response)
+	{
+		g_free(who);
+		return;
+	}
 	
 	parser = json_parser_new();
 	json_parser_load_from_data(parser, response, len, NULL);
@@ -176,7 +184,7 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 		}
 	}
 	
-	om_fetch_events(oma, who);
+	om_fetch_events(oma, g_strdup(who));
 	
 	g_free(who);
 	g_object_unref(parser);
