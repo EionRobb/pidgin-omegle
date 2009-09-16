@@ -179,7 +179,7 @@ static void om_got_events(OmegleAccount *oma, gchar *response, gsize len,
 			serv_got_typing(oma->pc, who, 10, PURPLE_TYPING);
 		} else if (g_str_equal(event_type, "stoppedTyping")) {
 			serv_got_typing(oma->pc, who, 10, PURPLE_TYPED);
-		} else if (g_str_equal(event_type, "strangerDisconnect")) {
+		} else if (g_str_equal(event_type, "strangerDisconnected")) {
 			serv_got_im(oma->pc, who, "Your conversational partner has disconnected", PURPLE_MESSAGE_SYSTEM, time(NULL));
 		}
 	}
