@@ -462,7 +462,7 @@ void om_post_or_get(OmegleAccount *oma, OmegleMethod method,
 	keepalive = FALSE;
 
 	if (host == NULL)
-		host = "omegle.com";
+		host = purple_account_get_string(oma->account, "host", "bajor.omegle.com");
 
 	if (oma && oma->account && !(method & OM_METHOD_SSL))
 	{
