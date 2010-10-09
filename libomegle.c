@@ -197,10 +197,7 @@ static void om_start_im_cb(OmegleAccount *oma, gchar *response, gsize len,
 	
 	//This should come back with an ID that we pass around
 	id = g_strdup(response);
-	if (id[0] == '"')
-		id++;
-	if (id[strlen(id)-1] == '"')
-		id[strlen(id)-1] = '\0';
+	purple_str_strip_char(id, '"');
 	
 	//Start the event loop
 	om_fetch_events(oma, g_strdup(id));
@@ -303,8 +300,8 @@ static gboolean plugin_load(PurplePlugin *plugin)
 	PurpleAccountOption *option;
 	PurplePluginInfo *info = plugin->info;
 	PurplePluginProtocolInfo *prpl_info = info->extra_info;
-	
-	option = purple_account_option_bool_new("", "ignore", FALSE);
+
+	option = purple_account_option_string_new("Server", "host", "bajor.omegle.com");
 	prpl_info->protocol_options = g_list_append(
 		prpl_info->protocol_options, option);
 		
