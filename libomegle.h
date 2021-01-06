@@ -57,15 +57,15 @@
 #	define PURPLE_PLUGINS
 #endif
 
-#include "accountopt.h"
-#include "connection.h"
-#include "debug.h"
-#include "dnsquery.h"
-#include "proxy.h"
-#include "prpl.h"
-#include "request.h"
-#include "sslconn.h"
-#include "version.h"
+#include <libpurple/accountopt.h>
+#include <libpurple/connection.h>
+#include <libpurple/debug.h>
+#include <libpurple/dnsquery.h>
+#include <libpurple/proxy.h>
+#include <libpurple/prpl.h>
+#include <libpurple/request.h>
+#include <libpurple/sslconn.h>
+#include <libpurple/version.h>
 
 #if GLIB_MAJOR_VERSION >= 2 && GLIB_MINOR_VERSION >= 12
 #	define atoll(a) g_ascii_strtoll(a, NULL, 0)
